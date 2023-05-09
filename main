@@ -1,0 +1,74 @@
+from ncclient import manager
+import xml.dom.minidom
+
+m = manager.connect(
+    host="192.168.17.128",
+    port=830,
+    username="cisco",
+    password="cisco123!",
+    hostkey_verify=False
+)
+
+netconf_reply = m.get_config(source="running")
+print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+
+
+netconf_filter = """
+<filter>
+    <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native"/>
+</filter>
+"""
+netconf_reply = m.get_config(source="running", filter=netconf_filter)
+print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml ())
+
+#Change 1
+netconf_hostname = """
+<config>
+  <native xmlns="https://cisco.com/ns/yang/Cisco-IOS-EX-native">
+     <hostname>CTSteam</hostname>
+  </native>
+</config>
+"""
+
+
+#Change 2 
+netconf_CTSloopback = """
+<config>
+ <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <interface>
+   <Loopback>
+    <name>1</name>
+    <description>CTSteam Final Project</description>
+    <ip>
+     <address>
+      <primary>
+       <address>10.1.1.2</address>
+       <mask>255.255.255.0</mask>
+      </primary>
+     </address>
+    </ip>
+   </Loopback>
+  </interface>
+ </native>
+</config>
+"""
+
+#Change 3
+netconf_Banner = """
+<config>
+ <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+  <banner>
+   <motd>
+    <banner>^UNAUTHORIZED ACCESS PROHIBITED"</banner>
+   </motd>
+  </banner>
+"""
+
+netconf_reply = m.edit_config(target="running", config=netconf_CTSloopback)
+print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml ())
+
+
+netconf_reply= m.get_config(source="running")
+CTSteam_output = m.get_config(source="running")
+print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+
