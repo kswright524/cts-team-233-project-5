@@ -1,0 +1,112 @@
+from ncclient import manager
+import xml.dom.minidom
+import requests
+import json
+
+m = manager.connect(
+    host="192.168.17.128",
+    port=830,
+    username="cisco",
+    password="cisco123!",
+    hostkey_verify=False
+)
+
+while True:
+  print("Please choose an option.")
+  print("1. Get Running config")
+  print("2. Set hostname")
+  print("3. Set loopback interface")
+  print("4. Set banner")
+  print("0. Exit")
+  choice =input("Enter your choice: ")
+  if choice == "1":
+    netconf_reply = m.get_config(source="running")
+    print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+  elif choice == "0":
+    break
+  elif choice == "2":
+    hostname = input("Enter hostname: ")
+    #Change 1
+    netconf_hostname = """
+    <config>
+     <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+      <hostname>{}</hostname>
+     </native>
+    </config>
+    """.format(hostname)
+
+    netconf_reply = m.edit_config(target="running",config=netconf_hostname)
+    print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+
+  elif choice == "3":
+    #Change 2 
+    netconf_CTSloopback = """
+    <config>
+     <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+      <interface>
+       <Loopback>
+        <name>1</name>
+        <description>CTSteam Final Project</description>
+        <ip>
+         <address>
+          <primary>
+            <address>10.1.1.2</address>
+            <mask>255.255.255.0</mask>
+          </primary>
+         </address>
+        </ip>
+       </Loopback>
+      </interface>
+     </native>
+    </config>
+    """
+
+    netconf_reply = m.edit_config(target="running",config=netconf_CTSloopback)
+    print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml ())
+
+  elif choice == "4":
+    banner = input("Enter your banner: ")
+    #Change 3
+    netconf_banner = """
+    <config>
+     <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+      <banner>
+       <motd>
+        <banner>^{}^</banner>
+       </motd>
+      </banner> 
+     </native>    
+    </config>
+    """.format(banner)
+    netconf_reply = m.edit_config(target="running", config=netconf_banner)
+    print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+
+
+
+
+
+room_id = "15d68290-acd3-11ed-af25-a92fb8c4bc46"
+message = input("Please enter your message to the Cts233 team: ")
+access_token = 'YzU0NGIxNzMtNTg5YS00ZjBjLTlkNjAtNzk4Mzg5NWM1OWE3OWMxZGQ0NjktYjNm_P0A1_023934c2-3934-48f9-b7e3-18314460f059'
+userMessage = message
+url ="https://webexapis.com/v1/messages"
+headers = {
+    'Authorization' : 'Bearer {}'.format(access_token),
+    'Content-Type' : 'application/json'
+}
+
+params = {'roomId': room_id, 'markdown' : userMessage }
+httpResponse = requests.post(url, headers=headers, json=params)
+
+print(httpResponse.json())
+print(json.dumps(httpResponse.json(), indent = 4))
+
+
+
+#netconf_filter = """
+#<filter>
+ #   <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native"/>
+#</filter>
+#"""
+#netconf_reply = m.get_config(source="running", filter=netconf_filter)
+#print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml ())
